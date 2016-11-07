@@ -1,13 +1,19 @@
 DialogChefIntent {Course}
-DialogChefIntent {Course} {Date}
 DialogChefIntent {Date}
+DialogChefIntent {Course} {Date}
 
 OneshotChefIntent get the menu
-OneshotChefIntent get the menu for {date}
+OneshotChefIntent get the menu for {Date}
 OneshotChefIntent what's for lunch 
-OneshotChefIntent what's for lunch {date}
-OneshotChefIntent what's for lunch on {date}
+OneshotChefIntent what's for lunch {Date}
+OneshotChefIntent what's for lunch on {Date}
 OneshotChefIntent what lunch is 
-OneshotChefIntent what lunch is {date}
-OneshotChefIntent what's the {Course} for {date}
-OneshotChefIntent what's the {Course} for {date}
+OneshotChefIntent what lunch is {Date}
+OneshotChefIntent what's the {Course} for {Date}
+OneshotChefIntent what's the {Course} for {Date}
+
+SupportedCoursesIntent what courses
+SupportedCoursesIntent what courses are supported
+SupportedCoursesIntent which courses are supported
+SupportedCoursesIntent which courses
+SupportedCoursesIntent which courses do you know

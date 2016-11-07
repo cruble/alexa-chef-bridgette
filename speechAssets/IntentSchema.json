@@ -1,15 +1,11 @@
 {
   "intents": [
     {
-      "intent": "OneshotTideIntent",
+      "intent": "OneshotChefIntent",
       "slots": [
         {
-          "name": "City",
-          "type": "LIST_OF_CITIES"
-        },
-        {
-          "name": "State",
-          "type": "LIST_OF_STATES"
+          "name": "Course",
+          "type": "LIST_OF_COURSES"
         },
         {
           "name": "Date",
@@ -18,15 +14,11 @@
       ]
     },
     {
-      "intent": "DialogTideIntent",
+      "intent": "DialogChefIntent",
       "slots": [
         {
-          "name": "City",
-          "type": "LIST_OF_CITIES"
-        },
-        {
-          "name": "State",
-          "type": "LIST_OF_STATES"
+          "name": "Course",
+          "type": "LIST_OF_COURSES"
         },
         {
           "name": "Date",

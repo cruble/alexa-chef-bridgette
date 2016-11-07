@@ -53,28 +53,28 @@ var AlexaSkill = require('./AlexaSkill');
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript#Inheritance
  */
-var TidePooler = function () {
+var MenuTeller = function () {
     AlexaSkill.call(this, APP_ID);
 };
 
 // Extend AlexaSkill
-TidePooler.prototype = Object.create(AlexaSkill.prototype);
-TidePooler.prototype.constructor = TidePooler;
+MenuTeller.prototype = Object.create(AlexaSkill.prototype);
+MenuTeller.prototype.constructor = MenuTeller;
 
 // ----------------------- Override AlexaSkill request and intent handlers -----------------------
 
-TidePooler.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
+MenuTeller.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
     console.log("onSessionStarted requestId: " + sessionStartedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any initialization logic goes here
 };
 
-TidePooler.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
+MenuTeller.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
     console.log("onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
     handleWelcomeRequest(response);
 };
 
-TidePooler.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
+MenuTeller.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
     console.log("onSessionEnded requestId: " + sessionEndedRequest.requestId
         + ", sessionId: " + session.sessionId);
     // any cleanup logic goes here
@@ -83,27 +83,23 @@ TidePooler.prototype.eventHandlers.onSessionEnded = function (sessionEndedReques
 /**
  * override intentHandlers to map intent handling functions.
  */
-TidePooler.prototype.intentHandlers = {
-    "OneshotTideIntent": function (intent, session, response) {
-        handleOneshotTideRequest(intent, session, response);
+MenuTeller.prototype.intentHandlers = {
+    "OneshotChefIntent": function (intent, session, response) {
+        handleOneshotMenuRequest(intent, session, response);
     },
 
-    "DialogTideIntent": function (intent, session, response) {
-        // Determine if this turn is for city, for date, or an error.
+    "DialogChefIntent": function (intent, session, response) {
+        // Determine if this turn is for city (course), for date, or an error.
         // We could be passed slots with values, no slots, slots with no value.
-        var citySlot = intent.slots.City;
+        var courseSlot = intent.slots.Course;
         var dateSlot = intent.slots.Date;
-        if (citySlot && citySlot.value) {
-            handleCityDialogRequest(intent, session, response);
+        if (courseSlot && courseSlot.value) {
+            handleCourseDialogRequest(intent, session, response);
         } else if (dateSlot && dateSlot.value) {
             handleDateDialogRequest(intent, session, response);
         } else {
             handleNoSlotDialogRequest(intent, session, response);
         }
-    },
-
-    "SupportedCitiesIntent": function (intent, session, response) {
-        handleSupportedCitiesRequest(intent, session, response);
     },
 
     "AMAZON.HelpIntent": function (intent, session, response) {
@@ -123,42 +119,22 @@ TidePooler.prototype.intentHandlers = {
 
 // -------------------------- TidePooler Domain Specific Business Logic --------------------------
 
-// example city to NOAA station mapping. Can be found on: http://tidesandcurrents.noaa.gov/map/
-var STATIONS = {
-    'seattle': 9447130,
-    'san francisco': 9414290,
-    'monterey': 9413450,
-    'los angeles': 9410660,
-    'san diego': 9410170,
-    'boston': 8443970,
-    'new york': 8518750,
-    'virginia beach': 8638863,
-    'wilmington': 8658163,
-    'charleston': 8665530,
-    'beaufort': 8656483,
-    'myrtle beach': 8661070,
-    'miami': 8723214,
-    'tampa': 8726667,
-    'new orleans': 8761927,
-    'galveston': 8771341
-};
 
 function handleWelcomeRequest(response) {
-    var whichCityPrompt = "Which city would you like tide information for?",
+    var whichMenuPrompt = "Which day would you like the menu for?",
         speechOutput = {
-            speech: "<speak>Welcome to Tide Pooler. "
-                + "<audio src='https://s3.amazonaws.com/ask-storage/tidePooler/OceanWaves.mp3'/>"
-                + whichCityPrompt
+            speech: "<speak>Welcome to Chef Bridgette's Menu Assistant. "
+                + whichMenuPrompt
                 + "</speak>",
             type: AlexaSkill.speechOutputType.SSML
         },
         repromptOutput = {
-            speech: "I can lead you through providing a city and "
-                + "day of the week to get tide information, "
-                + "or you can simply open Tide Pooler and ask a question like, "
-                + "get tide information for Seattle on Saturday. "
-                + "For a list of supported cities, ask what cities are supported. "
-                + whichCityPrompt,
+            speech: "I can get you the cafeteria menu for "
+                + "any school day from the current week. "
+                + "You can also ask me for specific courses for a particular day, such as soup, entree, sides, and vegan option. "
+                + "You could say what's for lunch on Friday. Or what's "
+                + "the entree tomorrow. You can also say exit. "
+                + whichMenuPrompt,
             type: AlexaSkill.speechOutputType.PLAIN_TEXT
         };
 
@@ -166,25 +142,24 @@ function handleWelcomeRequest(response) {
 }
 
 function handleHelpRequest(response) {
-    var repromptText = "Which city would you like tide information for?";
-    var speechOutput = "I can lead you through providing a city and "
-        + "day of the week to get tide information, "
-        + "or you can simply open Tide Pooler and ask a question like, "
-        + "get tide information for Seattle on Saturday. "
-        + "For a list of supported cities, ask what cities are supported. "
-        + "Or you can say exit. "
+    var repromptText = "Which day would you like the menu for?";
+    var speechOutput = "I can get you the cafeteria menu for "
+                + "any school day from the current week. "
+                + "You can also ask me for specific courses for a particular day, such as soup, entree, sides, and vegan option. "
+                + "You could say what's for lunch on Friday. Or you "
+                + "could say exit. "
         + repromptText;
 
     response.ask(speechOutput, repromptText);
 }
 
 /**
- * Handles the case where the user asked or for, or is otherwise being with supported cities
+ * Handles the case where the user asked or for, or is otherwise being with supported cities. 
  */
-function handleSupportedCitiesRequest(intent, session, response) {
-    // get city re-prompt
-    var repromptText = "Which city would you like tide information for?";
-    var speechOutput = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
+function handleSupportedCoursesRequest(intent, session, response) {
+    // get city (cr_ course) re-prompt
+    var repromptText = "Which course would you like information for?";
+    var speechOutput = "I can look up information for soups, entrees, sides, and the vegan option. "
         + repromptText;
 
     response.ask(speechOutput, repromptText);
@@ -193,28 +168,27 @@ function handleSupportedCitiesRequest(intent, session, response) {
 /**
  * Handles the dialog step where the user provides a city
  */
-function handleCityDialogRequest(intent, session, response) {
+function handleCourseDialogRequest(intent, session, response) {
 
-    var cityStation = getCityStationFromIntent(intent, false),
+    var courseSelection = getCourseSelectionFromIntent(intent, false),
         repromptText,
         speechOutput;
-    if (cityStation.error) {
-        repromptText = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
-            + "Which city would you like tide information for?";
+    if (courseSelection.error) {
+        repromptText = "I can get the full menu or just courses including soup, entree, sides, and vegan option. Or all the courses if you say all.";
         // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
-        speechOutput = cityStation.city ? "I'm sorry, I don't have any data for " + cityStation.city + ". " + repromptText : repromptText;
+        speechOutput = courseSelection.course ? "I'm sorry, I don't have any data for " + courseSelection.course + ". " + repromptText : repromptText;
         response.ask(speechOutput, repromptText);
         return;
     }
 
     // if we don't have a date yet, go to date. If we have a date, we perform the final request
     if (session.attributes.date) {
-        getFinalTideResponse(cityStation, session.attributes.date, response);
+        getFinalMenuResponse(courseSelection, session.attributes.date, response);
     } else {
         // set city in session and prompt for date
-        session.attributes.city = cityStation;
+        session.attributes.city = courseSelection;
         speechOutput = "For which date?";
-        repromptText = "For which date would you like tide information for " + cityStation.city + "?";
+        repromptText = "For which date would you like tide information for " + courseSelection.city + "?";
 
         response.ask(speechOutput, repromptText);
     }
@@ -266,7 +240,7 @@ function handleNoSlotDialogRequest(intent, session, response) {
         response.ask(speechOutput, repromptText);
     } else {
         // get city re-prompt
-        handleSupportedCitiesRequest(intent, session, response);
+        handleSupportedCoursesRequest(intent, session, response);
     }
 }
 
@@ -275,18 +249,19 @@ function handleNoSlotDialogRequest(intent, session, response) {
  * 'Alexa, open Tide Pooler and get tide information for Seattle on Saturday'.
  * If there is an error in a slot, this will guide the user to the dialog approach.
  */
-function handleOneshotTideRequest(intent, session, response) {
+function handleOneshotMenuRequest(intent, session, response) {
+ // CR @@@@@ this is where we are leaving off for now.. I think keeping this in here for some course validation makes sense. 
 
     // Determine city, using default if none provided
-    var cityStation = getCityStationFromIntent(intent, true),
+    var courseSelection = getCourseSelectionFromIntent(intent, true),
         repromptText,
         speechOutput;
-    if (cityStation.error) {
+    if (courseSelection.error) {
         // invalid city. move to the dialog
-        repromptText = "Currently, I know tide information for these coastal cities: " + getAllStationsText()
-            + "Which city would you like tide information for?";
+        repromptText = "I can find course information for soup, entree, sides, and vegan option. Or all courses for the full menu." 
+            + "Which course would you like information for?";
         // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
-        speechOutput = cityStation.city ? "I'm sorry, I don't have any data for " + cityStation.city + ". " + repromptText : repromptText;
+        speechOutput = courseSelection.course ? "I'm sorry, I don't have any data for " + courseSelection.course + ". " + repromptText : repromptText;
 
         response.ask(speechOutput, repromptText);
         return;
@@ -296,9 +271,9 @@ function handleOneshotTideRequest(intent, session, response) {
     var date = getDateFromIntent(intent);
     if (!date) {
         // Invalid date. set city in session and prompt for date
-        session.attributes.city = cityStation;
+        session.attributes.course = courseSelection;
         repromptText = "Please try again saying a day of the week, for example, Saturday. "
-            + "For which date would you like tide information?";
+            + "For which date would you like menu information?";
         speechOutput = "I'm sorry, I didn't understand that date. " + repromptText;
 
         response.ask(speechOutput, repromptText);
@@ -306,31 +281,30 @@ function handleOneshotTideRequest(intent, session, response) {
     }
 
     // all slots filled, either from the user or by default values. Move to final request
-    getFinalTideResponse(cityStation, date, response);
+    getFinalMenuResponse(courseSelection, date, response);
 }
 
 /**
  * Both the one-shot and dialog based paths lead to this method to issue the request, and
  * respond to the user with the final answer.
  */
-function getFinalTideResponse(cityStation, date, response) {
-
+function getFinalMenuResponse(courseSelection, date, response) {
+    
     // Issue the request, and respond to the user
-    makeTideRequest(cityStation.station, date, function tideResponseCallback(err, highTideResponse) {
+    makeMenuRequest(courseSelection.course, date, function menuResponseCallback(err, menuResponse) {
         var speechOutput;
 
         if (err) {
-            speechOutput = "Sorry, the National Oceanic tide service is experiencing a problem. Please try again later";
+            speechOutput = "Sorry, something funky is happening with the menu. Please try again later.";
         } else {
-            speechOutput = date.displayDate + " in " + cityStation.city + ", the first high tide will be around "
-                + highTideResponse.firstHighTideTime + ", and will peak at about " + highTideResponse.firstHighTideHeight
-                + ", followed by a low tide at around " + highTideResponse.lowTideTime
-                + " that will be about " + highTideResponse.lowTideHeight
-                + ". The second high tide will be around " + highTideResponse.secondHighTideTime
-                + ", and will peak at about " + highTideResponse.secondHighTideHeight + ".";
+            speechOutput = date.displayDate + " The soup is "
+                + menuResponse.soup + ". The entree is " + menuResponse.entree
+                + ". The side is " + menuResponse.side
+                + ". The vegan option is " + menuResponse.vegan 
+                + ".";
         }
 
-        response.tellWithCard(speechOutput, "TidePooler", speechOutput)
+        response.tellWithCard(speechOutput, "MenuTeller", speechOutput)
     });
 }
 
@@ -338,40 +312,43 @@ function getFinalTideResponse(cityStation, date, response) {
  * Uses NOAA.gov API, documented: http://tidesandcurrents.noaa.gov/api/
  * Results can be verified at: http://tidesandcurrents.noaa.gov/noaatidepredictions/NOAATidesFacade.jsp?Stationid=[id]
  */
-function makeTideRequest(station, date, tideResponseCallback) {
 
-    var datum = "MLLW";
-    var endpoint = 'http://tidesandcurrents.noaa.gov/api/datagetter';
-    var queryString = '?' + date.requestDateParam;
-    queryString += '&station=' + station;
-    queryString += '&product=predictions&datum=' + datum + '&units=english&time_zone=lst_ldt&format=json';
+ // need to add some logic here .. for if coures is all versus if its not, the query string changes.... as would the response
 
-    http.get(endpoint + queryString, function (res) {
-        var noaaResponseString = '';
+function makeMenuRequest(course, date, menuResponseCallback) {
+
+    var endpoint = "http://secret-atoll-35147.herokuapp.com/menus/2016-11-07.json";
+    //var queryString = date.requestDateParam;
+    //queryString += '&course=' + course;
+    //queryString += '.json';
+// took off the query string here... 
+    http.get(endpoint, function (res) {
+        var menuResponseString = '';
         console.log('Status Code: ' + res.statusCode);
 
         if (res.statusCode != 200) {
-            tideResponseCallback(new Error("Non 200 Response"));
+            menuResponseCallback(new Error("Non 200 Response"));
         }
 
         res.on('data', function (data) {
-            noaaResponseString += data;
+            menuResponseString += data;
         });
 
         res.on('end', function () {
-            var noaaResponseObject = JSON.parse(noaaResponseString);
+            var menuResponseObject = JSON.parse(menuResponseString);
 
-            if (noaaResponseObject.error) {
-                console.log("NOAA error: " + noaaResponseObj.error.message);
-                tideResponseCallback(new Error(noaaResponseObj.error.message));
+            if (menuResponseObject.error) {
+                console.log("MENU error: " + menuResponseObject.error.message);
+                menuResponseCallback(new Error(menuResponseObject.error.message));
             } else {
-                var highTide = findHighTide(noaaResponseObject);
-                tideResponseCallback(null, highTide);
+
+                var menu = findMenu(menuResponseObject);
+                menuResponseCallback(null, menu);
             }
         });
     }).on('error', function (e) {
         console.log("Communications error: " + e.message);
-        tideResponseCallback(new Error(e.message));
+        menuResponseCallback(new Error(e.message));
     });
 }
 
@@ -379,124 +356,46 @@ function makeTideRequest(station, date, tideResponseCallback) {
  * Algorithm to find the 2 high tides for the day, the first of which is smaller and occurs
  * mid-day, the second of which is larger and typically in the evening
  */
-function findHighTide(noaaResponseObj) {
-    var predictions = noaaResponseObj.predictions;
-    var lastPrediction;
-    var firstHighTide, secondHighTide, lowTide;
-    var firstTideDone = false;
+function findMenu(menuResponseObj) {
 
-    for (var i = 0; i < predictions.length; i++) {
-        var prediction = predictions[i];
-
-        if (!lastPrediction) {
-            lastPrediction = prediction;
-            continue;
-        }
-
-        if (isTideIncreasing(lastPrediction, prediction)) {
-            if (!firstTideDone) {
-                firstHighTide = prediction;
-            } else {
-                secondHighTide = prediction;
-            }
-
-        } else { // we're decreasing
-
-            if (!firstTideDone && firstHighTide) {
-                firstTideDone = true;
-            } else if (secondHighTide) {
-                break; // we're decreasing after have found 2nd tide. We're done.
-            }
-
-            if (firstTideDone) {
-                lowTide = prediction;
-            }
-        }
-
-        lastPrediction = prediction;
-    }
+    var soup = menuResponseObj.soups[0].name;
+    var entree = menuResponseObj.entrees[0].name;
+    var side = menuResponseObj.sides[0].name;
+    var vegan = menuResponseObj.vegans[0].name;
 
     return {
-        firstHighTideTime: alexaDateUtil.getFormattedTime(new Date(firstHighTide.t)),
-        firstHighTideHeight: getFormattedHeight(firstHighTide.v),
-        lowTideTime: alexaDateUtil.getFormattedTime(new Date(lowTide.t)),
-        lowTideHeight: getFormattedHeight(lowTide.v),
-        secondHighTideTime: alexaDateUtil.getFormattedTime(new Date(secondHighTide.t)),
-        secondHighTideHeight: getFormattedHeight(secondHighTide.v)
+        soup: soup, entree: entree, side: side, vegan: vegan
     }
 }
 
-function isTideIncreasing(lastPrediction, currentPrediction) {
-    return parseFloat(lastPrediction.v) < parseFloat(currentPrediction.v);
-}
+
 
 /**
- * Formats the height, rounding to the nearest 1/2 foot. e.g.
- * 4.354 -> "four and a half feet".
+ * Gets the city (course) from the intent, or returns an error
  */
-function getFormattedHeight(height) {
-    var isNegative = false;
-    if (height < 0) {
-        height = Math.abs(height);
-        isNegative = true;
-    }
+function getCourseSelectionFromIntent(intent, assignDefault) {
 
-    var remainder = height % 1;
-    var feet, remainderText;
-
-    if (remainder < 0.25) {
-        remainderText = '';
-        feet = Math.floor(height);
-    } else if (remainder < 0.75) {
-        remainderText = " and a half";
-        feet = Math.floor(height);
-    } else {
-        remainderText = '';
-        feet = Math.ceil(height);
-    }
-
-    if (isNegative) {
-        feet *= -1;
-    }
-
-    var formattedHeight = feet + remainderText + " feet";
-    return formattedHeight;
-}
-
-/**
- * Gets the city from the intent, or returns an error
- */
-function getCityStationFromIntent(intent, assignDefault) {
-
-    var citySlot = intent.slots.City;
+    var courseSlot = intent.slots.Course;
     // slots can be missing, or slots can be provided but with empty value.
     // must test for both.
-    if (!citySlot || !citySlot.value) {
+    if (!courseSlot || !courseSlot.value) {
         if (!assignDefault) {
             return {
                 error: true
             }
         } else {
-            // For sample skill, default to Seattle.
+            // For sample skill, default to Seattle. Here CR is defaulting to all courses - so we default in this to complete menu 
             return {
-                city: 'seattle',
-                station: STATIONS.seattle
+                course: 'all',
             }
         }
     } else {
-        // lookup the city. Sample skill uses well known mapping of a few known cities to station id.
-        var cityName = citySlot.value;
-        if (STATIONS[cityName.toLowerCase()]) {
-            return {
-                city: cityName,
-                station: STATIONS[cityName.toLowerCase()]
+
+        // lookup the city. Sample skill uses well known mapping of a few known cities to station id. CR: removed some error correction here. 
+        var courseName = courseSlot.value;
+        return {
+                course: courseName
             }
-        } else {
-            return {
-                error: true,
-                city: cityName
-            }
-        }
     }
 }
 
@@ -507,45 +406,44 @@ function getCityStationFromIntent(intent, assignDefault) {
 function getDateFromIntent(intent) {
 
     var dateSlot = intent.slots.Date;
+
+    var date = new Date();
+    var current_hour = date.getHours();
     // slots can be missing, or slots can be provided but with empty value.
     // must test for both.
-    if (!dateSlot || !dateSlot.value) {
-        // default to today
-        return {
-            displayDate: "Today",
-            requestDateParam: "date=today"
-        }
+    if (!dateSlot || !dateSlot.value && current_hour < 16) {
+        // date defaults to today  
+        date = new Date();
+
+    } else if (!dateSlot || !dateSlot.value && current_hour > 16) {
+        // date defaults to tomorrow - since its after 4pm 
+        //date = date.setDate(date.getDate() + 1);
+        date = new Date();
+
+
     } else {
 
-        var date = new Date(dateSlot.value);
+        date = new Date();
+    // for debugging: change this: date = new Date(dateSlot.value);
 
-        // format the request date like YYYYMMDD
-        var month = (date.getMonth() + 1);
-        month = month < 10 ? '0' + month : month;
-        var dayOfMonth = date.getDate();
-        dayOfMonth = dayOfMonth < 10 ? '0' + dayOfMonth : dayOfMonth;
-        var requestDay = "begin_date=" + date.getFullYear() + month + dayOfMonth
-            + "&range=24";
-
-        return {
-            displayDate: alexaDateUtil.getFormattedDate(date),
-            requestDateParam: requestDay
-        }
     }
-}
+    // format the request date like YYYYMMDD
+    var month = (date.getMonth() + 1);
+    month = month < 10 ? '0' + month : month;
+    var dayOfMonth = date.getDate();
+    dayOfMonth = dayOfMonth < 10 ? '0' + dayOfMonth : dayOfMonth;
+    var requestDay = date.getFullYear() + '-' + month + '-' + dayOfMonth;
 
-function getAllStationsText() {
-    var stationList = '';
-    for (var station in STATIONS) {
-        stationList += station + ", ";
+
+    return {
+        displayDate: alexaDateUtil.getFormattedDate(date),
+        requestDateParam: requestDay
     }
-
-    return stationList;
 }
 
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
-    var tidePooler = new TidePooler();
-    tidePooler.execute(event, context);
+    var menuTeller = new MenuTeller();
+    menuTeller.execute(event, context);
 };
 
