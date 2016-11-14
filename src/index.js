@@ -47,12 +47,9 @@ var http = require('http'),
  */
 var AlexaSkill = require('./AlexaSkill');
 
-/**
- * TidePooler is a child of AlexaSkill.
- * To read more about inheritance in JavaScript, see the link below.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript#Inheritance
- */
+var calendar = {"2016-10-31":"4","2016-11-01":"5","2016-11-02":"6","2016-11-03":"7","2016-11-04":"8","2016-11-07":"1","2016-11-10":"2","2016-11-11":"3","2016-11-14":"4","2016-11-15":"5","2016-11-16":"6","2016-11-17":"7","2016-11-18":"8","2016-11-21":"1","2016-11-28":"2","2016-11-29":"3","2016-11-30":"4","2016-12-01":"5","2016-12-02":"6","2016-12-05":"7","2016-12-06":"8","2016-12-07":"1","2016-12-08":"2","2016-12-09":"3","2016-12-12":"4","2016-12-13":"5","2016-12-14":"6","2016-12-15":"7","2017-01-03":"8","2017-01-04":"1","2017-01-05":"2","2017-01-06":"3","2017-01-09":"4","2017-01-10":"5","2017-01-11":"6","2017-01-12":"7","2017-01-13":"8","2017-01-17":"1","2017-01-18":"2","2017-01-19":"3","2017-01-20":"4","2017-01-23":"5","2017-01-24":"6","2017-01-25":"7","2017-01-26":"8","2017-01-27":"1","2017-01-30":"2","2017-01-31":"3","2017-02-01":"4","2017-02-02":"5","2017-02-03":"6","2017-02-06":"7","2017-02-07":"8","2017-02-08":"1","2017-02-09":"2","2017-02-10":"3","2017-02-13":"4","2017-02-14":"5","2017-02-15":"6","2017-02-16":"7","2017-02-17":"8","2017-02-21":"1","2017-02-22":"2","2017-02-23":"3","2017-02-24":"4","2017-02-27":"5","2017-02-28":"6","2017-03-01":"7","2017-03-06":"8","2017-03-07":"1","2017-03-08":"2","2017-03-09":"3","2017-03-10":"4","2017-03-13":"5","2017-03-14":"6","2017-03-15":"7","2017-03-16":"8","2017-03-17":"1","2017-04-03":"2","2017-04-04":"3","2017-04-05":"4","2017-04-06":"5","2017-04-07":"6","2017-04-10":"7","2017-04-12":"8","2017-04-13":"1","2017-04-17":"2","2017-04-18":"3","2017-04-19":"4","2017-04-20":"5","2017-04-21":"6","2017-04-24":"7","2017-04-25":"8","2017-04-26":"1","2017-04-27":"2","2017-04-28":"3","2017-05-01":"4","2017-05-02":"5","2017-05-03":"6","2017-05-04":"7","2017-05-05":"8","2017-05-08":"1","2017-05-09":"2","2017-05-10":"3","2017-05-11":"4","2017-05-12":"5","2017-05-15":"6","2017-05-16":"7","2017-05-17":"8","2017-05-18":"1","2017-05-19":"2","2017-05-22":"3","2017-05-23":"4","2017-05-24":"5","2017-05-25":"6","2017-05-26":"7","2017-05-30":"8","2017-05-31":"1","2017-06-01":"2","2017-06-02":"3","2017-06-05":"4","2017-06-06":"5","2017-06-07":"6","2017-06-08":"7","2017-06-09":"8","2017-06-12":"1","2017-06-13":"2"};
+
+
 var MenuTeller = function () {
     AlexaSkill.call(this, APP_ID);
 };
@@ -159,7 +156,7 @@ function handleHelpRequest(response) {
 function handleSupportedCoursesRequest(intent, session, response) {
     // get city (cr_ course) re-prompt
     var repromptText = "Which course would you like information for?";
-    var speechOutput = "I can look up information for soups, entrees, sides, and the vegan option. "
+    var speechOutput = "I can look up information for soups, entrees, sides, and the vegan option. You can also say all for the whole menu."
         + repromptText;
 
     response.ask(speechOutput, repromptText);
@@ -171,12 +168,32 @@ function handleSupportedCoursesRequest(intent, session, response) {
 function handleCourseDialogRequest(intent, session, response) {
 
     var courseSelection = getCourseSelectionFromIntent(intent, false),
+        date = getDateFromIntent(intent),
         repromptText,
         speechOutput;
+
+    if (date) {
+        session.attributes.date = date 
+    }
+
+    if (date && !isSchoolDay(date)) {
+        repromptText = "You can to get a menu for another day, a school day.";
+        speechOutput = "I'm sorry, but " + date.displayDate + " is not a school day and you are on your own for lunch. " + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+
+    if (date && !isCurrentWeek(date)) {
+        repromptText = "Would you like a menu for a day this week?";
+        speechOutput = "I'm sorry, but I only have menu information for the current week. The menu updates on Sunday." + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+
     if (courseSelection.error) {
         repromptText = "I can get the full menu or just courses including soup, entree, sides, and vegan option. Or all the courses if you say all.";
         // if we received a value for the incorrect city, repeat it to the user, otherwise we received an empty slot
-        speechOutput = courseSelection.course ? "I'm sorry, I don't have any data for " + courseSelection.course + ". " + repromptText : repromptText;
+        speechOutput = courseSelection.course ? "I'm sorry, I don't have any info for " + courseSelection.course + ". " + repromptText : repromptText;
         response.ask(speechOutput, repromptText);
         return;
     }
@@ -186,9 +203,9 @@ function handleCourseDialogRequest(intent, session, response) {
         getFinalMenuResponse(courseSelection, session.attributes.date, response);
     } else {
         // set city in session and prompt for date
-        session.attributes.city = courseSelection;
+        session.attributes.course = courseSelection;
         speechOutput = "For which date?";
-        repromptText = "For which date would you like tide information for " + courseSelection.city + "?";
+        repromptText = "For which date would you like tide information for " + courseSelection.course + "? You can also say all.";
 
         response.ask(speechOutput, repromptText);
     }
@@ -203,22 +220,39 @@ function handleDateDialogRequest(intent, session, response) {
         repromptText,
         speechOutput;
     if (!date) {
-        repromptText = "Please try again saying a day of the week, for example, Saturday. "
-            + "For which date would you like tide information?";
+        repromptText = "Please try again saying a day of the week, for example, Monday. "
+            + "For which date would you like menu information?";
         speechOutput = "I'm sorry, I didn't understand that date. " + repromptText;
 
         response.ask(speechOutput, repromptText);
         return;
     }
 
-    // if we don't have a city yet, go to city. If we have a city, we perform the final request
-    if (session.attributes.city) {
-        getFinalTideResponse(session.attributes.city, date, response);
+    // test here isSchoolDay? 
+    if (date && !isSchoolDay(date)) {
+        repromptText = "You can to get a menu for another day, a school day.";
+        speechOutput = "I'm sorry, but " + date.displayDate + " is not a school day and you are on your own for lunch. " + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+
+    if (date && !isCurrentWeek(date)) {
+        repromptText = "Would you like a menu for a day this week?";
+        speechOutput = "I'm sorry, but I only have menu information for the current week. The menu updates on Sunday." + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+    
+
+
+    // if we don't have a city yet, go to city. If we have a city, we perform the final request @@@@@@
+    if (session.attributes.course) {
+        getFinalMenuResponse(session.attributes.course, date, response);
     } else {
         // The user provided a date out of turn. Set date in session and prompt for city
         session.attributes.date = date;
-        speechOutput = "For which city would you like tide information for " + date.displayDate + "?";
-        repromptText = "For which city?";
+        speechOutput = "Which course on " + date.displayDate + "? You can also say all.";
+        repromptText = "For which course?";
 
         response.ask(speechOutput, repromptText);
     }
@@ -232,9 +266,9 @@ function handleDateDialogRequest(intent, session, response) {
  * determine the next turn in the dialog, and reprompt.
  */
 function handleNoSlotDialogRequest(intent, session, response) {
-    if (session.attributes.city) {
+    if (session.attributes.course) {
         // get date re-prompt
-        var repromptText = "Please try again saying a day of the week, for example, Saturday. ";
+        var repromptText = "Please try again saying a day of the week, for example, Monday. ";
         var speechOutput = repromptText;
 
         response.ask(speechOutput, repromptText);
@@ -250,7 +284,6 @@ function handleNoSlotDialogRequest(intent, session, response) {
  * If there is an error in a slot, this will guide the user to the dialog approach.
  */
 function handleOneshotMenuRequest(intent, session, response) {
- // CR @@@@@ this is where we are leaving off for now.. I think keeping this in here for some course validation makes sense. 
 
     // Determine city, using default if none provided
     var courseSelection = getCourseSelectionFromIntent(intent, true),
@@ -272,7 +305,7 @@ function handleOneshotMenuRequest(intent, session, response) {
     if (!date) {
         // Invalid date. set city in session and prompt for date
         session.attributes.course = courseSelection;
-        repromptText = "Please try again saying a day of the week, for example, Saturday. "
+        repromptText = "Please try again saying a day of the week, for example, Monday. "
             + "For which date would you like menu information?";
         speechOutput = "I'm sorry, I didn't understand that date. " + repromptText;
 
@@ -280,7 +313,23 @@ function handleOneshotMenuRequest(intent, session, response) {
         return;
     }
 
+    if (date && !isSchoolDay(date)) {
+        repromptText = "You can to get a menu for another day, a school day.";
+        speechOutput = "I'm sorry, but " + date.displayDate + " is not a school day and you are on your own for lunch. " + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+
+    if (date && !isCurrentWeek(date)) {
+        repromptText = "Would you like a menu for a day this week?";
+        speechOutput = "I'm sorry, but I only have menu information for the current week. The menu updates on Sunday." + repromptText;
+        response.ask(speechOutput, repromptText);
+        return;
+    }
+    
     // all slots filled, either from the user or by default values. Move to final request
+    console.log(date);
+    console.log(date.requestDateParam);
     getFinalMenuResponse(courseSelection, date, response);
 }
 
@@ -290,9 +339,18 @@ function handleOneshotMenuRequest(intent, session, response) {
  */
 function getFinalMenuResponse(courseSelection, date, response) {
     
+    // if (date && !isSchoolDay(date)) {
+    //     repromptText = "Please try for another day.";
+    //     speechOutput = "I'm sorry, but " + date.displayDate + " is not a school day. " + repromptText;
+    //     response.ask(speechOutput, repromptText);
+    //     return;
+    // }
+
     // Issue the request, and respond to the user
     makeMenuRequest(courseSelection.course, date, function menuResponseCallback(err, menuResponse) {
         var speechOutput;
+        console.log(date);
+        console.log(date.requestDateParam);
 
         if (err) {
             speechOutput = "Sorry, something funky is happening with the menu. Please try again later.";
@@ -301,28 +359,25 @@ function getFinalMenuResponse(courseSelection, date, response) {
                 + menuResponse.soup + ". The entree is " + menuResponse.entree
                 + ". The side is " + menuResponse.side
                 + ". The vegan option is " + menuResponse.vegan 
-                + ".";
+                + ". The course selection is: " + courseSelection.course
+                + ". The date slot is: " +  date.requestDateParam;
         }
 
         response.tellWithCard(speechOutput, "MenuTeller", speechOutput)
     });
 }
 
-/**
- * Uses NOAA.gov API, documented: http://tidesandcurrents.noaa.gov/api/
- * Results can be verified at: http://tidesandcurrents.noaa.gov/noaatidepredictions/NOAATidesFacade.jsp?Stationid=[id]
- */
-
  // need to add some logic here .. for if coures is all versus if its not, the query string changes.... as would the response
 
 function makeMenuRequest(course, date, menuResponseCallback) {
 
-    var endpoint = "http://secret-atoll-35147.herokuapp.com/menus/2016-11-07.json";
-    //var queryString = date.requestDateParam;
-    //queryString += '&course=' + course;
-    //queryString += '.json';
-// took off the query string here... 
-    http.get(endpoint, function (res) {
+    var endpoint = "http://secret-atoll-35147.herokuapp.com/menus/";
+    var queryString = date.requestDateParam;
+        queryString += '.json';
+
+
+
+    http.get(endpoint + queryString, function (res) {
         var menuResponseString = '';
         console.log('Status Code: ' + res.statusCode);
 
@@ -338,11 +393,12 @@ function makeMenuRequest(course, date, menuResponseCallback) {
             var menuResponseObject = JSON.parse(menuResponseString);
 
             if (menuResponseObject.error) {
+
                 console.log("MENU error: " + menuResponseObject.error.message);
                 menuResponseCallback(new Error(menuResponseObject.error.message));
-            } else {
+            }  else {
 
-                var menu = findMenu(menuResponseObject);
+                var menu = assembleMenu(menuResponseObject);
                 menuResponseCallback(null, menu);
             }
         });
@@ -353,10 +409,12 @@ function makeMenuRequest(course, date, menuResponseCallback) {
 }
 
 /**
- * Algorithm to find the 2 high tides for the day, the first of which is smaller and occurs
- * mid-day, the second of which is larger and typically in the evening
+ * Here, I need to parse the menu object. 1. determine if there is an item (soup, entree, side, vegan) - if not, return, I don't see a menu for today. Are you sure its a school day? / Need to add the logic.. if there is a menu. we need to say, There is no soup, there entree or entrees are and say the three entrees, with a pause. Ideally, add an "and" when I have plurals. 
  */
-function findMenu(menuResponseObj) {
+
+function assembleMenu(menuResponseObj) {
+
+
 
     var soup = menuResponseObj.soups[0].name;
     var entree = menuResponseObj.entrees[0].name;
@@ -411,20 +469,19 @@ function getDateFromIntent(intent) {
     var current_hour = date.getHours();
     // slots can be missing, or slots can be provided but with empty value.
     // must test for both.
-    if (!dateSlot || !dateSlot.value && current_hour < 16) {
+    if (!dateSlot || !dateSlot.value && current_hour < 21) {
         // date defaults to today  
         date = new Date();
 
-    } else if (!dateSlot || !dateSlot.value && current_hour > 16) {
-        // date defaults to tomorrow - since its after 4pm 
-        //date = date.setDate(date.getDate() + 1);
-        date = new Date();
+    } else if (!dateSlot || !dateSlot.value && current_hour > 21) {
+        // date defaults to tomorrow - since its after 4pm est utc + 4
+        date.setDate(date.getDate() + 1);
+        //date = new Date();
 
 
     } else {
 
-        date = new Date();
-    // for debugging: change this: date = new Date(dateSlot.value);
+        date = new Date(dateSlot.value);
 
     }
     // format the request date like YYYYMMDD
@@ -440,6 +497,35 @@ function getDateFromIntent(intent) {
         requestDateParam: requestDay
     }
 }
+
+// function to return day number if its a school day or false
+
+function isSchoolDay(date) {
+
+    if (calendar[date.requestDateParam]) {
+        dayNumber = calendar[date];
+        return {
+            dayNumber
+        }
+    } else {
+         return false; 
+    }
+};
+
+// need to write a helper function.. is a date in the current week. Then test that first in the dialog date and oneshot and course selection. Something funky happening with the dates, but this tested well. 
+
+function isCurrentWeek(date) {
+
+    var curr = new Date;
+    var firstday = new Date(curr.setDate(curr.getDate() - curr.getDay()));
+    var lastday = new Date(curr.setDate(curr.getDate() - curr.getDay()+5));
+
+    if (date > firstday && date < lastday) {
+        return true;
+    } else {
+         return false; 
+    }
+};
 
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
