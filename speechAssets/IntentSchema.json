@@ -27,7 +27,7 @@
       ]
     },
     {
-      "intent": "SupportedCitiesIntent"
+      "intent": "SupportedCoursesIntent"
     },
     {
       "intent": "AMAZON.HelpIntent"
