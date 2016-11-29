@@ -17,7 +17,6 @@ var AlexaSkill = require('./AlexaSkill');
 
 var calendar = {"2016-10-31":"4","2016-11-01":"5","2016-11-02":"6","2016-11-03":"7","2016-11-04":"8","2016-11-07":"1","2016-11-10":"2","2016-11-11":"3","2016-11-14":"4","2016-11-15":"5","2016-11-16":"6","2016-11-17":"7","2016-11-18":"8","2016-11-21":"1","2016-11-22":"Special","2016-11-28":"2","2016-11-29":"3","2016-11-30":"4","2016-12-01":"5","2016-12-02":"6","2016-12-05":"7","2016-12-06":"8","2016-12-07":"1","2016-12-08":"2","2016-12-09":"3","2016-12-12":"4","2016-12-13":"5","2016-12-14":"6","2016-12-15":"7","2017-01-03":"8","2017-01-04":"1","2017-01-05":"2","2017-01-06":"3","2017-01-09":"4","2017-01-10":"5","2017-01-11":"6","2017-01-12":"7","2017-01-13":"8","2017-01-17":"1","2017-01-18":"2","2017-01-19":"3","2017-01-20":"4","2017-01-23":"5","2017-01-24":"6","2017-01-25":"7","2017-01-26":"8","2017-01-27":"1","2017-01-30":"2","2017-01-31":"3","2017-02-01":"4","2017-02-02":"5","2017-02-03":"6","2017-02-06":"7","2017-02-07":"8","2017-02-08":"1","2017-02-09":"2","2017-02-10":"3","2017-02-13":"4","2017-02-14":"5","2017-02-15":"6","2017-02-16":"7","2017-02-17":"8","2017-02-21":"1","2017-02-22":"2","2017-02-23":"3","2017-02-24":"4","2017-02-27":"5","2017-02-28":"6","2017-03-01":"7","2017-03-06":"8","2017-03-07":"1","2017-03-08":"2","2017-03-09":"3","2017-03-10":"4","2017-03-13":"5","2017-03-14":"6","2017-03-15":"7","2017-03-16":"8","2017-03-17":"1","2017-04-03":"2","2017-04-04":"3","2017-04-05":"4","2017-04-06":"5","2017-04-07":"6","2017-04-10":"7","2017-04-12":"8","2017-04-13":"1","2017-04-17":"2","2017-04-18":"3","2017-04-19":"4","2017-04-20":"5","2017-04-21":"6","2017-04-24":"7","2017-04-25":"8","2017-04-26":"1","2017-04-27":"2","2017-04-28":"3","2017-05-01":"4","2017-05-02":"5","2017-05-03":"6","2017-05-04":"7","2017-05-05":"8","2017-05-08":"1","2017-05-09":"2","2017-05-10":"3","2017-05-11":"4","2017-05-12":"5","2017-05-15":"6","2017-05-16":"7","2017-05-17":"8","2017-05-18":"1","2017-05-19":"2","2017-05-22":"3","2017-05-23":"4","2017-05-24":"5","2017-05-25":"6","2017-05-26":"7","2017-05-30":"8","2017-05-31":"1","2017-06-01":"2","2017-06-02":"3","2017-06-05":"4","2017-06-06":"5","2017-06-07":"6","2017-06-08":"7","2017-06-09":"8","2017-06-12":"1","2017-06-13":"2"};
 
-
 var MenuTeller = function () {
     AlexaSkill.call(this, APP_ID);
 };
@@ -378,14 +377,14 @@ function makeMenuRequest(course, date, menuResponseCallback) {
 function assembleMenu(menuResponseObj) {
 
     var s, e, sd, v; 
-    var all_string = ""; 
+    var all_string = "Sorry, there doesn't seem to be menu information for that day."; 
     var soup_string = "";
     var entree_string = "";
     var side_string = "";
     var vegan_string = ""; 
 
 
-    if (menuResponseObj.soups[0].name) {
+    if (menuResponseObj.soups[0]) {
         if (menuResponseObj.soups.length > 1) {
             soup_string = "The soups are "
             for (var i = 0; i < menuResponseObj.soups.length; i++) {
@@ -401,7 +400,7 @@ function assembleMenu(menuResponseObj) {
         }
     } 
 
-    if (menuResponseObj.entrees[0].name) {
+    if (menuResponseObj.entrees[0]) {
         if (menuResponseObj.entrees.length > 1) {
             entree_string = "The entrees are "
             for (var i = 0; i < menuResponseObj.entrees.length; i++) {
@@ -417,7 +416,7 @@ function assembleMenu(menuResponseObj) {
         }
     } 
 
-    if (menuResponseObj.sides[0].name) {
+    if (menuResponseObj.sides[0]) {
         if (menuResponseObj.sides.length > 1) {
             side_string = "The sides are "
             for (var i = 0; i < menuResponseObj.sides.length; i++) {
@@ -433,7 +432,7 @@ function assembleMenu(menuResponseObj) {
         }
     } 
 
-    if (menuResponseObj.vegans[0].name) {
+    if (menuResponseObj.vegans[0]) {
         if (menuResponseObj.vegans.length > 1) {
             vegan_string = "The vegan options are "
             for (var i = 0; i < menuResponseObj.vegans.length; i++) {
@@ -449,8 +448,11 @@ function assembleMenu(menuResponseObj) {
         }
     } 
 
-    all_string = soup_string + " " + entree_string + " " + side_string + " " + vegan_string; 
+    if (menuResponseObj.soups[0] || menuResponseObj.entrees[0] || menuResponseObj.sides[0] || menuResponseObj.vegans[0]) {
 
+      all_string = soup_string + " " + entree_string + " " + side_string + " " + vegan_string; 
+    
+    }
 
     return {
         soup: soup_string, entree: entree_string, side: side_string, vegan: vegan_string, all: all_string
@@ -502,12 +504,6 @@ function getDateFromIntent(intent) {
     if (!dateSlot || !dateSlot.value && current_hour < 21) {
         // date defaults to today  
         date = new Date();
-
-    } else if (!dateSlot || !dateSlot.value && current_hour > 21) {
-        // date defaults to tomorrow - since its after 4pm est utc + 4
-        date.setDate(date.getDate() + 1);
-        //date = new Date();
-
 
     } else {
 
