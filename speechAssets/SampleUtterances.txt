@@ -2,6 +2,82 @@ DialogChefIntent {Course}
 DialogChefIntent {Date}
 DialogChefIntent {Course} {Date}
 
+OneshotChefIntent what did my kid eat for lunch
+OneshotChefIntent what did my kid eat for lunch {Date}
+OneshotChefIntent what did my child eat for lunch
+OneshotChefIntent what did my child eat for lunch {Date}
+OneshotChefIntent what did my son eat for lunch
+OneshotChefIntent what did my son eat for lunch {Date}
+OneshotChefIntent what did my daughter eat for lunch
+OneshotChefIntent what did my daughter eat for lunch {Date}
+
+OneshotChefIntent what will my kid eat for lunch
+OneshotChefIntent what will my kid eat for lunch {Date}
+OneshotChefIntent what will my child eat for lunch
+OneshotChefIntent what will my child eat for lunch {Date}
+OneshotChefIntent what will my son eat for lunch
+OneshotChefIntent what will my son eat for lunch {Date}
+OneshotChefIntent what will my daughter eat for lunch
+OneshotChefIntent what will my daughter eat for lunch {Date}
+
+OneshotChefIntent what's my kid eating for lunch
+OneshotChefIntent what's my kid eating for lunch {Date}
+OneshotChefIntent what's my child eating for lunch
+OneshotChefIntent what's my child eating for lunch {Date}
+OneshotChefIntent what's my son eating for lunch
+OneshotChefIntent what's my son eating for lunch {Date}
+OneshotChefIntent what's my daughter eating for lunch
+OneshotChefIntent what's my daughter eating for lunch {Date}
+OneshotChefIntent what's my student eating for lunch
+OneshotChefIntent what's my student eating for lunch {Date}
+
+OneshotChefIntent what my kid is eating for lunch
+OneshotChefIntent what my kid is eating for lunch {Date}
+OneshotChefIntent what my child is eating for lunch
+OneshotChefIntent what my child is eating for lunch {Date}
+OneshotChefIntent what my son is eating for lunch
+OneshotChefIntent what my son is eating for lunch {Date}
+OneshotChefIntent what my daughter is eating for lunch
+OneshotChefIntent what my daughter is eating for lunch {Date}
+OneshotChefIntent what my student is eating for lunch
+OneshotChefIntent what my student is eating for lunch {Date}
+
+OneshotChefIntent what my kid ate for lunch
+OneshotChefIntent what my kid ate for lunch {Date}
+OneshotChefIntent what my child ate for lunch
+OneshotChefIntent what my child ate for lunch {Date}
+OneshotChefIntent what my son ate for lunch
+OneshotChefIntent what my son ate for lunch {Date}
+OneshotChefIntent what my daughter ate for lunch
+OneshotChefIntent what my daughter ate for lunch {Date}
+OneshotChefIntent what my student ate for lunch
+OneshotChefIntent what my student ate for lunch {Date}
+OneshotChefIntent what are you serving for lunch
+OneshotChefIntent what are you serving for lunch {Date}
+
+OneshotChefIntent what are you serving my kid for lunch
+OneshotChefIntent what are you serving my kid for lunch {Date}
+OneshotChefIntent what are you serving my child for lunch
+OneshotChefIntent what are you serving my child for lunch {Date}
+OneshotChefIntent what are you serving my son for lunch
+OneshotChefIntent what are you serving my son for lunch {Date}
+OneshotChefIntent what are you serving my daughter for lunch
+OneshotChefIntent what are you serving my daughter for lunch {Date}
+OneshotChefIntent what are you serving my student for lunch
+OneshotChefIntent what are you serving my student for lunch {Date}
+
+OneshotChefIntent what's my child having for lunch
+OneshotChefIntent what's my child having for lunch {Date}
+OneshotChefIntent what's my kid having for lunch
+OneshotChefIntent what's my kid having for lunch {Date}
+OneshotChefIntent what's my son having for lunch
+OneshotChefIntent what's my son having for lunch {Date}
+OneshotChefIntent what's my daughter having for lunch
+OneshotChefIntent what's my daughter having for lunch {Date}
+OneshotChefIntent what's my student having for lunch
+OneshotChefIntent what's my student having for lunch {Date}
+OneshotChefIntent what's the feast
+OneshotChefIntent what's the feast {Date}
 OneshotChefIntent get the menu
 OneshotChefIntent get the menu for {Date}
 OneshotChefIntent what's for lunch 
@@ -11,6 +87,17 @@ OneshotChefIntent what lunch is
 OneshotChefIntent what lunch is {Date}
 OneshotChefIntent what's the {Course} for {Date}
 OneshotChefIntent what's the {Course} for {Date}
+OneshotChefIntent what's the {Course} {Date}
+OneshotChefIntent what the {Course} {Date}
+OneshotChefIntent what the {Course} is 
+OneshotChefIntent what's the {Course}
+OneshotChefIntent what the {Course} is for {Date}
+OneshotChefIntent {Course} {Date}
+OneshotChefIntent {Date}
+OneshotChefIntent for the {Course} {Date}
+OneshotChefIntent for the {Course}
+OneshotChefIntent for {Course} {Date}
+OneshotChefIntent for {Course}
 
 SupportedCoursesIntent what courses
 SupportedCoursesIntent what courses are supported
